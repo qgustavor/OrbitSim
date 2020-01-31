@@ -58,7 +58,7 @@
 
         <!-- url saving/loading -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako.min.js"></script>
-        <script src="https://unpkg.com/@ygoe/msgpack@1.0.2/msgpack.min.js"></script>
+        <script src="https://unpkg.com/msgpack-lite@0.1.26/dist/msgpack.min.js"></script>
         <script src="https://unpkg.com/tweetnacl-util@0.15.0/nacl-util.min.js"></script>
         
         <script type="text/javascript">
@@ -66,16 +66,21 @@
             addEvent(window,'load',engine.setupControlEvents);
             addEvent(window,'load',engine.setupInputEvents);
             addEvent(window,'load', function () {
-              if (location.hash) {
-                engine.loadObject(msgpack.decode(pako.inflate(
-                    nacl.util.decodeBase64(location.hash.substring(1))
-                )));
-              }
+                if (location.hash.length > 5) {
+                    engine.loadObject(msgpack.decode(pako.inflate(
+                        base64Decode(location.hash.substring(1))
+                    )));
+                }
+                function base64Decode (input) {
+                    input = input.replace(/-/g, '+').replace(/_/g, '/');
+                    while (input.length % 4) input += '=';
+                    return nacl.util.decodeBase64(input)
+                }
             });
             engine.id("exportURL").addEventListener('click', function(e) {
               location.hash = '#' + nacl.util.encodeBase64(pako.deflate(
-                  msgpack.encode(engine.orbit_data.planet_array))
-              ));
+                  msgpack.encode(engine.orbit_data.planet_array)
+              )).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
               return false;
             }, false);
         </script>
