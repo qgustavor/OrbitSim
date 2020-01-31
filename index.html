@@ -55,12 +55,29 @@
         <!-- saving -->
         <script src="storage.js" type="text/javascript"></script>
         <script src="recording.js" type="text/javascript"></script>
-        
+
+        <!-- url saving/loading -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.10/pako.min.js"></script>
+        <script src="https://unpkg.com/@ygoe/msgpack@1.0.2/msgpack.min.js"></script>
+        <script src="https://unpkg.com/tweetnacl-util@0.15.0/nacl-util.min.js"></script>
         
         <script type="text/javascript">
             addEvent(window,'load',engine.reset);
             addEvent(window,'load',engine.setupControlEvents);
             addEvent(window,'load',engine.setupInputEvents);
+            addEvent(window,'load', function () {
+              if (location.hash) {
+                engine.loadObject(msgpack.decode(pako.inflate(
+                    nacl.util.decodeBase64(location.hash.substring(1))
+                )));
+              }
+            });
+            engine.id("exportURL").addEventListener('click', function(e) {
+              location.hash = '#' + nacl.util.encodeBase64(pako.deflate(
+                  msgpack.encode(engine.orbit_data.planet_array))
+              ));
+              return false;
+            }, false);
         </script>
         <title>Orbit Simulator</title>
     </head>
@@ -228,7 +245,8 @@
                     </div>
                     <div id="fstorage-controls"  class="panel-collapse collapse" role="tabpanel">
                         <div class="panel-body">
-                            <button type="button" class="btn btn-default" id="export" name="export" value="export">Export To File</button><br/><br/>
+                            <button type="button" class="btn btn-default" id="export" name="export" value="export">Export To File</button>
+                            <button type="button" class="btn btn-default" id="exportURL" name="exportURL" value="exportURL">Export To URL</button><br/><br/>
                             <label for="import">Upload file: </label>
                             <span class="btn btn-default btn-file">
                                 Browse <input type="file" id="import" />
